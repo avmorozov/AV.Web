@@ -1,5 +1,5 @@
-
 _ReSharper.*/
 bin/
 obj/
+TestResults/
 *.suo
