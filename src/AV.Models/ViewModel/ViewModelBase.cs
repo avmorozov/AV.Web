@@ -39,14 +39,12 @@ namespace AV.Models.ViewModel
         public void FillProperties(object entity)
         {
             var entityProps = entity.GetType().GetProperties().ToDictionary(x => x.Name);
-            var viewModelProps = this.GetType().GetProperties();
+            var viewModelProps = GetType().GetProperties();
 
             foreach (var viewModelProperty in viewModelProps)
             {
                 if (!entityProps.ContainsKey(viewModelProperty.Name))
-                {
                     continue;
-                }
 
                 var entityProperty = entityProps[viewModelProperty.Name];
                 var value = entityProperty.GetValue(entity, null);
@@ -75,14 +73,12 @@ namespace AV.Models.ViewModel
         public void UpdateProperties(object entity)
         {
             var entityProps = entity.GetType().GetProperties().ToDictionary(x => x.Name);
-            var viewModelProps = this.GetType().GetProperties();
+            var viewModelProps = GetType().GetProperties();
 
             foreach (var viewModelProperty in viewModelProps)
             {
                 if (!entityProps.ContainsKey(viewModelProperty.Name))
-                {
                     continue;
-                }
 
                 var value = viewModelProperty.GetValue(this, null);
                 var entityProperty = entityProps[viewModelProperty.Name];
@@ -93,13 +89,11 @@ namespace AV.Models.ViewModel
 
                 if (relatedModelTypeAttribute != null)
                 {
-                    var instance = this.LoadOrCreateFromRepositary(relatedModelTypeAttribute, value);
+                    var instance = LoadOrCreateFromRepositary(relatedModelTypeAttribute, value);
                     entityProperty.SetValue(entity, instance, null);
                 }
                 else if (viewModelProperty.PropertyType.IsAssignableFrom(entityProperty.PropertyType))
-                {
                     entityProperty.SetValue(entity, value, null);
-                }
             }
         }
 

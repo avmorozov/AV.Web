@@ -48,18 +48,6 @@ namespace AV.Web.Tests.Models.Repositary
         ///   Gets the repositary for simple entities.
         /// </summary>
         /// <value> The repositary. </value>
-        public FakeRepositary<SimpleEntity> SimpleEntitiesRepositary
-        {
-            get
-            {
-                return ServiceLocator.Current.GetInstance<IRepositary<SimpleEntity>>() as FakeRepositary<SimpleEntity>;
-            }
-        }
-
-        /// <summary>
-        ///   Gets the repositary for simple entities.
-        /// </summary>
-        /// <value> The repositary. </value>
         public FakeRepositary<AggregationEntity> AggregationEntitiesRepositary
         {
             get
@@ -67,6 +55,18 @@ namespace AV.Web.Tests.Models.Repositary
                 return
                     ServiceLocator.Current.GetInstance<IRepositary<AggregationEntity>>() as
                     FakeRepositary<AggregationEntity>;
+            }
+        }
+
+        /// <summary>
+        ///   Gets the repositary for simple entities.
+        /// </summary>
+        /// <value> The repositary. </value>
+        public FakeRepositary<SimpleEntity> SimpleEntitiesRepositary
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<IRepositary<SimpleEntity>>() as FakeRepositary<SimpleEntity>;
             }
         }
 
@@ -98,6 +98,40 @@ namespace AV.Web.Tests.Models.Repositary
 
             SimpleEntitiesRepositary.Clear();
             SimpleEntitiesRepositary.MemoryBuffer.Should().BeEmpty();
+        }
+
+        /// <summary>
+        ///   Save two connected entities (testing cascade save)
+        /// </summary>
+        [TestMethod]
+        public void ConnectedEntitiesSave()
+        {
+            var aggregationEntity = new AggregationEntity { Name = "Awesome aggregation" };
+            aggregationEntity.OneToOne = new SimpleEntity { Name = "Awesome string" };
+
+            AggregationEntitiesRepositary.Save(aggregationEntity);
+
+            AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
+            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(aggregationEntity);
+            SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
+            SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(aggregationEntity.OneToOne);
+        }
+
+        /// <summary>
+        ///   Delete one of two connected entities should work
+        /// </summary>
+        [TestMethod]
+        public void DeleteConnectedEntities()
+        {
+            var aggregationEntity = new AggregationEntity { Name = "Awesome aggregation" };
+            aggregationEntity.OneToOne = new SimpleEntity { Name = "Awesome string" };
+
+            AggregationEntitiesRepositary.Save(aggregationEntity);
+            SimpleEntitiesRepositary.Remove(aggregationEntity.OneToOne);
+
+            AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
+            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(aggregationEntity);
+            SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(0);
         }
 
         /// <summary>
@@ -143,6 +177,52 @@ namespace AV.Web.Tests.Models.Repositary
         }
 
         /// <summary>
+        ///   Save many to many associations
+        /// </summary>
+        [TestMethod]
+        public void ManyToManyAssociationSave()
+        {
+            var nodes = new List<AggregationEntity>();
+            const int NodesCount = 10;
+            for (int i = 0; i < NodesCount; i++)
+                nodes.Add(new AggregationEntity { Name = string.Format("node {0}", i) });
+
+            foreach (var from in nodes)
+            {
+                foreach (var to in nodes)
+                {
+                    from.ManyToManyTo.Add(to);
+                    to.ManyToManyFrom.Add(from);
+                }
+            }
+
+            nodes.ForEach(x => AggregationEntitiesRepositary.Save(x));
+
+            AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(NodesCount);
+            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(nodes);
+        }
+
+        /// <summary>
+        ///   Save one to many associations
+        /// </summary>
+        [TestMethod]
+        public void OneTwoManyAssociationSave()
+        {
+            var parent = new AggregationEntity { Name = "Parent" };
+            for (int i = 0; i < 10; i++)
+            {
+                var child = new AggregationEntity { Name = string.Format("child {0}", i), OneToMany = parent };
+                parent.ManyToOne.Add(child);
+            }
+
+            AggregationEntitiesRepositary.Save(parent);
+
+            AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(11);
+            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(parent);
+            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(parent.ManyToOne);
+        }
+
+        /// <summary>
         ///   Saves the entity.
         /// </summary>
         [TestMethod]
@@ -174,90 +254,56 @@ namespace AV.Web.Tests.Models.Repositary
         }
 
         /// <summary>
-        /// Save two connected entities (testing cascade save)
+        ///   Check update operation is updating properties
         /// </summary>
         [TestMethod]
-        public void ConnectedEntitiesSave()
+        public void UpdateEntity()
         {
-            var aggregationEntity = new AggregationEntity {Name = "Awesome aggregation" };
-            aggregationEntity.OneToOne = new SimpleEntity { Name = "Awesome string" };
+            var entity = new SimpleEntity { Name = "Awesome string" };
+            SimpleEntitiesRepositary.Save(entity);
+            var entityToUpdate = new SimpleEntity { Id = entity.Id, Name = "Something else" };
 
-            AggregationEntitiesRepositary.Save(aggregationEntity);
+            SimpleEntitiesRepositary.Update(entityToUpdate);
 
-            AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
-            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(aggregationEntity);
-            SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
-            SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(aggregationEntity.OneToOne);
+            entityToUpdate.Name.Should().Be(entity.Name);
         }
+
+        #endregion
 
         /// <summary>
-        /// Save one to many associations
+        ///   Sample entity to test aggregations
         /// </summary>
-        [TestMethod]
-        public void OneTwoManyAssociationSave()
+        public class AggregationEntity
         {
-            var parent = new AggregationEntity { Name = "Parent" };
-            for (int i = 0; i < 10; i++)
+            #region Constructors and Destructors
+
+            public AggregationEntity()
             {
-                var child = new AggregationEntity { Name = string.Format("child {0}", i), OneToMany = parent};
-                parent.ManyToOne.Add(child);
+                ManyToOne = new List<AggregationEntity>();
+                ManyToManyFrom = new List<AggregationEntity>();
+                ManyToManyTo = new List<AggregationEntity>();
             }
 
-            AggregationEntitiesRepositary.Save(parent);
+            #endregion
 
-            AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(11);
-            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(parent);
-            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(parent.ManyToOne);
+            #region Public Properties
+
+            public int Id { get; set; }
+
+            public ICollection<AggregationEntity> ManyToManyFrom { get; set; }
+
+            public ICollection<AggregationEntity> ManyToManyTo { get; set; }
+
+            public ICollection<AggregationEntity> ManyToOne { get; set; }
+
+            public string Name { get; set; }
+
+            public AggregationEntity OneToMany { get; set; }
+
+            public SimpleEntity OneToOne { get; set; }
+
+            #endregion
         }
-
-        /// <summary>
-        /// Save many to many associations
-        /// </summary>
-        [TestMethod]
-        public void ManyToManyAssociationSave()
-        {
-            var nodes = new List<AggregationEntity>();
-            const int NodesCount = 10;
-            for (int i = 0; i < NodesCount; i++)
-            {
-                nodes.Add(new AggregationEntity{Name = string.Format("node {0}", i)});
-            }
-
-            foreach (var from in nodes)
-            {
-                foreach (var to in nodes)
-                {
-                    from.ManyToManyTo.Add(to);
-                    to.ManyToManyFrom.Add(from);
-                }
-            }
-
-            nodes.ForEach(x => AggregationEntitiesRepositary.Save(x));
-
-            AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(NodesCount);
-            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(nodes);
-        }
-
-        /// <summary>
-        /// Delete one of two connected entities should work
-        /// </summary>
-        [TestMethod]
-        public void DeleteConnectedEntities()
-        {
-            var aggregationEntity = new AggregationEntity { Name = "Awesome aggregation" };
-            aggregationEntity.OneToOne = new SimpleEntity { Name = "Awesome string" };
-
-            AggregationEntitiesRepositary.Save(aggregationEntity);
-            SimpleEntitiesRepositary.Remove(aggregationEntity.OneToOne);
-
-            AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
-            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(aggregationEntity);
-            SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(0);
-        }
-
-    #endregion
-
-        #region Sample entities
 
         /// <summary>
         ///   Sample simple entity to test NHibernate repositary
@@ -309,35 +355,5 @@ namespace AV.Web.Tests.Models.Repositary
 
             #endregion
         }
-
-        /// <summary>
-        /// Sample entity to test aggregations
-        /// </summary>
-        public class AggregationEntity
-        {
-            public int Id { get; set; }
-
-            public string Name { get; set; }
-            
-            public SimpleEntity OneToOne { get; set; }
-
-            public AggregationEntity OneToMany { get; set; }
-
-            public ICollection<AggregationEntity> ManyToOne { get; set; }
-
-            public ICollection<AggregationEntity> ManyToManyFrom { get; set; }
-
-            public ICollection<AggregationEntity> ManyToManyTo { get; set; }
-
-            public AggregationEntity()
-            {
-                ManyToOne = new List<AggregationEntity>();
-                ManyToManyFrom = new List<AggregationEntity>();
-                ManyToManyTo = new List<AggregationEntity>();
-            }
-
-        }
-
-        #endregion
     }
 }

@@ -22,7 +22,7 @@ namespace AV.Models.ViewModel
         /// <param name="relatedType"> The related type. </param>
         public RelatedModelTypeAttribute(Type relatedType)
         {
-            this.RelatedType = relatedType;
+            RelatedType = relatedType;
         }
 
         #endregion

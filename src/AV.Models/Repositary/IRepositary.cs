@@ -6,13 +6,14 @@
 
 namespace AV.Models.Repositary
 {
+    using System;
     using System.Linq;
 
     /// <summary>
     ///   Base repositary interface
     /// </summary>
     /// <typeparam name="TEntity"> Entity to store </typeparam>
-    public interface IRepositary<TEntity> : IQueryable<TEntity>
+    public interface IRepositary<TEntity> : IQueryable<TEntity>, IDisposable
         where TEntity : class
     {
         #region Public Methods
@@ -22,6 +23,12 @@ namespace AV.Models.Repositary
         /// </summary>
         /// <returns> New instance of entity type </returns>
         TEntity New();
+
+        /// <summary>
+        ///   Updates data using entity key
+        /// </summary>
+        /// <param name="obj"> Object to update </param>
+        void Update(TEntity obj);
 
         /// <summary>
         ///   Removes the specified object.
