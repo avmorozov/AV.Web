@@ -17,7 +17,7 @@ namespace AV.Models.ViewModel
     /// <summary>
     ///   Common viewmodel functions.
     /// </summary>
-    public abstract class ViewModelBase
+    public static class ViewModelHelper
     {
         #region Constants and Fields
 
@@ -35,11 +35,15 @@ namespace AV.Models.ViewModel
         /// <summary>
         ///   Fills view model properties using values from entity
         /// </summary>
+        /// <param name="viewModel"> The view model </param>
         /// <param name="entity"> The entity </param>
-        public void FillProperties(object entity)
+        public static void Fill(this IViewModel viewModel, IEntity entity)
         {
-            var entityProps = entity.GetType().GetProperties().ToDictionary(x => x.Name);
-            var viewModelProps = GetType().GetProperties();
+            var entityProps = entity.GetType().GetProperties()                
+                .ToDictionary(x => x.Name);
+
+            var viewModelProps = viewModel.GetType().GetProperties()
+                .Where(x => !x.GetIndexParameters().Any());
 
             foreach (var viewModelProperty in viewModelProps)
             {
@@ -62,7 +66,7 @@ namespace AV.Models.ViewModel
 
                     value = relatedType.GetProperty(relatedProperty).GetValue(value, null);
                 }
-                viewModelProperty.SetValue(this, value, null);
+                viewModelProperty.SetValue(viewModel, value, null);
             }
         }
 
@@ -70,17 +74,17 @@ namespace AV.Models.ViewModel
         ///   Updates entity properties by view model properies
         /// </summary>
         /// <param name="entity"> The entity. </param>
-        public void UpdateProperties(object entity)
+        public static void UpdateProperties(this IViewModel viewModel, IEntity entity)
         {
             var entityProps = entity.GetType().GetProperties().ToDictionary(x => x.Name);
-            var viewModelProps = GetType().GetProperties();
+            var viewModelProps = viewModel.GetType().GetProperties();
 
             foreach (var viewModelProperty in viewModelProps)
             {
                 if (!entityProps.ContainsKey(viewModelProperty.Name))
                     continue;
 
-                var value = viewModelProperty.GetValue(this, null);
+                var value = viewModelProperty.GetValue(viewModel, null);
                 var entityProperty = entityProps[viewModelProperty.Name];
 
                 var relatedModelTypeAttribute =
@@ -107,7 +111,7 @@ namespace AV.Models.ViewModel
         /// <param name="attribute"> The related model type attribute. </param>
         /// <param name="value"> The value of related property. </param>
         /// <returns> Instance of related entity </returns>
-        private object LoadOrCreateFromRepositary(RelatedModelTypeAttribute attribute, object value)
+        private static object LoadOrCreateFromRepositary(RelatedModelTypeAttribute attribute, object value)
         {
             var relatedType = attribute.RelatedType;
             var relatedProperty = string.IsNullOrEmpty(attribute.RelatedProperty) ? "Id" : attribute.RelatedProperty;

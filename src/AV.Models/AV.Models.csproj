@@ -55,7 +55,7 @@
     <Compile Include="Repositary\FakeRepositary.cs" />
     <Compile Include="Repositary\IRepositary.cs" />
     <Compile Include="ViewModel\RelatedModelTypeAttribute.cs" />
-    <Compile Include="ViewModel\ViewModelBase.cs" />
+    <Compile Include="ViewModel\ViewModelHelper.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
