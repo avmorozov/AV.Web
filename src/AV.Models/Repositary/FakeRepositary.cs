@@ -20,7 +20,7 @@ namespace AV.Models.Repositary
     /// </summary>
     /// <typeparam name="TEntity"> The type of the entity. </typeparam>
     public class FakeRepositary<TEntity> : IRepositary<TEntity>
-        where TEntity : class
+        where TEntity : class, IEntity
     {
         #region Constants and Fields
 
@@ -164,12 +164,11 @@ namespace AV.Models.Repositary
 
                 if (!this.memoryBuffer.Contains(obj))
                 {
-                    AutoIncrementId(obj);
-
+                    obj.Id = memoryBuffer.Count > 0 ? memoryBuffer.Max(x => x.Id) + 1 : 1;
                     this.memoryBuffer.Add(obj);
                 }
 
-                SaveProperties(obj.GetType(), obj);
+                SaveProperties(obj);
             }
             finally
             {
@@ -197,7 +196,7 @@ namespace AV.Models.Repositary
             if (obj == null)
                 throw new ApplicationException("Can't update null objects");
 
-            var repositaryEntity = GetEntityWithTheSameKey(obj);
+            var repositaryEntity = this.SingleOrDefault(x => x.Id == obj.Id);
             if (repositaryEntity == null)
                 throw new ApplicationException("Entity with key not found.");
 
@@ -226,43 +225,12 @@ namespace AV.Models.Repositary
         #region Methods
 
         /// <summary>
-        ///   Autoincrement Id by 1
-        /// </summary>
-        /// <param name="obj"> </param>
-        private void AutoIncrementId(TEntity obj)
-        {
-            var type = obj.GetType();
-            var keyProperty = type.GetProperty("Id");
-            if (keyProperty != null
-                && (keyProperty.PropertyType == typeof(int) || keyProperty.PropertyType == typeof(long)))
-                keyProperty.SetValue(obj, this.memoryBuffer.Count + 1, null);
-        }
-
-        /// <summary>
-        ///   Get object from repositary with key like entity key
-        /// </summary>
-        /// <param name="entity"> </param>
-        private TEntity GetEntityWithTheSameKey(TEntity entity)
-        {
-            var keyProperty = typeof(TEntity).GetProperty("Id");
-            if (keyProperty == null)
-                throw new ApplicationException("Update objects without Id property does not supported.");
-            var keyValue = keyProperty.GetValue(entity, null);
-            var xParam = Expression.Parameter(typeof(TEntity), "x");
-            var predicate =
-                Expression.Lambda<Func<TEntity, bool>>(
-                    Expression.Equal(Expression.Property(xParam, keyProperty), Expression.Constant(keyValue)),
-                    new[] { xParam });
-            return this.SingleOrDefault(predicate);
-        }
-
-        /// <summary>
         ///   Saves properties
         /// </summary>
-        /// <param name="type"> Object types </param>
         /// <param name="obj"> Object instance </param>
-        private void SaveProperties(Type type, object obj)
+        private void SaveProperties(object obj)
         {
+            var type = obj.GetType();
             foreach (var propertyInfo in type.GetProperties(PersistedPropertiesFlags))
             {
                 if (!propertyInfo.GetIndexParameters().Any())

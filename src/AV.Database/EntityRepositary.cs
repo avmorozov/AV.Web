@@ -12,12 +12,13 @@ namespace AV.Database
     using System.Linq;
     using System.Linq.Expressions;
 
+    using AV.Models;
     using AV.Models.Repositary;
 
     /// <summary>
     /// </summary>
     public class EntityRepositary<TEntity> : IRepositary<TEntity>
-        where TEntity : class
+        where TEntity : class, IEntity
     {
         public IEnumerator<TEntity> GetEnumerator()
         {

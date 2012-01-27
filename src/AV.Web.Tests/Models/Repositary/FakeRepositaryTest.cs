@@ -9,6 +9,7 @@ namespace AV.Web.Tests.Models.Repositary
     using System.Collections.Generic;
     using System.Linq;
 
+    using AV.Models;
     using AV.Models.Repositary;
 
     using FluentAssertions;
@@ -273,7 +274,7 @@ namespace AV.Web.Tests.Models.Repositary
         /// <summary>
         ///   Sample entity to test aggregations
         /// </summary>
-        public class AggregationEntity
+        public class AggregationEntity : IEntity
         {
             #region Constructors and Destructors
 
@@ -288,7 +289,7 @@ namespace AV.Web.Tests.Models.Repositary
 
             #region Public Properties
 
-            public int Id { get; set; }
+            public long Id { get; set; }
 
             public ICollection<AggregationEntity> ManyToManyFrom { get; set; }
 
@@ -308,7 +309,7 @@ namespace AV.Web.Tests.Models.Repositary
         /// <summary>
         ///   Sample simple entity to test NHibernate repositary
         /// </summary>
-        public class SimpleEntity
+        public class SimpleEntity : IEntity
         {
             #region Public Properties
 
@@ -316,42 +317,13 @@ namespace AV.Web.Tests.Models.Repositary
             ///   Gets or sets the id.
             /// </summary>
             /// <value> The identifier. </value>
-            public virtual int Id { get; set; }
+            public long Id { get; set; }
 
             /// <summary>
             ///   Gets or sets the name.
             /// </summary>
             /// <value> The simple name. </value>
-            public virtual string Name { get; set; }
-
-            #endregion
-
-            #region Public Methods
-
-            /// <summary>
-            ///   Determines whether the specified <see cref="System.Object" /> is equal to this instance.
-            /// </summary>
-            /// <param name="obj"> The <see cref="System.Object" /> to compare with this instance. </param>
-            /// <returns> <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c> . </returns>
-            public override bool Equals(object obj)
-            {
-                if (obj is SimpleEntity)
-                {
-                    var entity = (SimpleEntity)obj;
-                    return entity.Id == Id && entity.Name == Name;
-                }
-
-                return base.Equals(obj);
-            }
-
-            /// <summary>
-            ///   Returns a hash code for this instance.
-            /// </summary>
-            /// <returns> A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. </returns>
-            public override int GetHashCode()
-            {
-                return Id.GetHashCode();
-            }
+            public string Name { get; set; }
 
             #endregion
         }
