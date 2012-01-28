@@ -21,9 +21,9 @@
   <IgnoreGeneratedCode>False</IgnoreGeneratedCode>
  </ProjectOptions>
  <Targets>
-  <Target Name="$(ProjectDir)/../AV.Web.Tests/bin/Debug/AV.Database.dll" Analyze="True" AnalyzeAllChildren="True" />
-  <Target Name="$(ProjectDir)/../AV.Web.Tests/bin/Debug/AV.Models.dll" Analyze="True" AnalyzeAllChildren="True" />
-  <Target Name="$(ProjectDir)/../AV.Web.Tests/bin/Debug/AV.Web.dll" Analyze="True" AnalyzeAllChildren="True" />
+  <Target Name="$(ProjectDir)/../AV.Web.Tests/bin/Release/AV.Database.dll" Analyze="True" AnalyzeAllChildren="True" />
+  <Target Name="$(ProjectDir)/../AV.Web.Tests/bin/Release/AV.Models.dll" Analyze="True" AnalyzeAllChildren="True" />
+  <Target Name="$(ProjectDir)/../AV.Web.Tests/bin/Release/AV.Web.dll" Analyze="True" AnalyzeAllChildren="True" />
  </Targets>
  <Rules>
   <RuleFiles>
@@ -42,7 +42,7 @@
  </Rules>
  <FxCopReport Version="1.36">
   <Targets>
-   <Target Name="$(ProjectDir)/../AV.Web.Tests/bin/Debug/AV.Database.dll">
+   <Target Name="$(ProjectDir)/../AV.Web.Tests/bin/Release/AV.Database.dll">
     <Modules>
      <Module Name="av.database.dll">
       <Messages>
@@ -55,7 +55,7 @@
      </Module>
     </Modules>
    </Target>
-   <Target Name="$(ProjectDir)/../AV.Web.Tests/bin/Debug/AV.Models.dll">
+   <Target Name="$(ProjectDir)/../AV.Web.Tests/bin/Release/AV.Models.dll">
     <Modules>
      <Module Name="av.models.dll">
       <Messages>
@@ -149,7 +149,7 @@
      </Module>
     </Modules>
    </Target>
-   <Target Name="$(ProjectDir)/../AV.Web.Tests/bin/Debug/AV.Web.dll">
+   <Target Name="$(ProjectDir)/../AV.Web.Tests/bin/Release/AV.Web.dll">
     <Modules>
      <Module Name="av.web.dll">
       <Messages>
