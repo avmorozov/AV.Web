@@ -12,7 +12,7 @@ namespace AV.Models
     ///   Connects viewmodel property with entity property with another name
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class EntityPropertyAttribute : Attribute
+    public sealed class EntityPropertyAttribute : Attribute
     {
         /// <summary>
         ///   Constructor of the attribute

@@ -7,9 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
-using Microsoft.Practices.ServiceLocation;
 
 namespace AV.Models
 {
@@ -71,7 +69,7 @@ namespace AV.Models
         private static KeyValuePair<PropertyInfo, object> GetPropertyMap(PropertyInfo property, IEntity entity)
         {
             var entityPropertyValue = GetEntityProperty(property, entity).GetValue(entity, null);
-            
+
             var modelAttribute = property.GetCustomAttributes(typeof (RelatedModelAttribute), true)
                                      .FirstOrDefault() as RelatedModelAttribute;
             if (modelAttribute == null)
@@ -94,7 +92,7 @@ namespace AV.Models
             // select mapped properties
             var mapping = (from property in viewModelType.GetProperties(PersistedPropertiesFlags)
                            where !property.GetIndexParameters().Any() &&
-                                 !property.GetCustomAttributes(typeof(RelatedModelAttribute), true).Any() &&
+                                 !property.GetCustomAttributes(typeof (RelatedModelAttribute), true).Any() &&
                                  (entityType.GetProperty(property.Name, property.PropertyType, new Type[] {}) != null
                                   || property.GetCustomAttributes(typeof (EntityPropertyAttribute), true).Any())
                            select new KeyValuePair<PropertyInfo, object>(
@@ -112,50 +110,14 @@ namespace AV.Models
         private static PropertyInfo GetEntityProperty(PropertyInfo property, IEntity entity)
         {
             var entityType = entity.GetType();
-            
-            var propertyAttribute = property.GetCustomAttributes(typeof(EntityPropertyAttribute), true)
+
+            var propertyAttribute = property.GetCustomAttributes(typeof (EntityPropertyAttribute), true)
                                         .FirstOrDefault() as EntityPropertyAttribute;
             var entityPropertyName = (propertyAttribute != null)
                                          ? propertyAttribute.EntityProperty
                                          : property.Name;
 
-             return entityType.GetProperty(entityPropertyName);
-        }
-
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        ///   Load or create related entity from repositary
-        /// </summary>
-        /// <param name="attribute"> The related model type attribute. </param>
-        /// <param name="value"> The value of related property. </param>
-        /// <returns> Instance of related entity </returns>
-        private static object LoadOrCreateFromRepositary(RelatedModelAttribute attribute, object value)
-        {
-            Type relatedType = attribute.RelatedType;
-            string relatedProperty = string.IsNullOrEmpty(attribute.RelatedProperty) ? "Id" : attribute.RelatedProperty;
-
-            Type repositaryType = typeof (IRepositary<>).MakeGenericType(new[] {relatedType});
-            object repositary = ServiceLocator.Current.GetInstance(repositaryType);
-
-            ParameterExpression lambdaParam = Expression.Parameter(relatedType, "x");
-            LambdaExpression predicate =
-                Expression.Lambda(
-                    Expression.Equal(Expression.Property(lambdaParam, relatedProperty), Expression.Constant(value)),
-                    lambdaParam);
-
-            MethodInfo firstOrDefaultMethod = FirstOrDefaultGenericMethod.MakeGenericMethod(new[] {relatedType});
-            object instance = firstOrDefaultMethod.Invoke(null, new[] {repositary, predicate});
-
-            if (instance == null)
-            {
-                instance = repositaryType.GetMethod("Create").Invoke(repositary, null);
-                relatedType.GetProperty(relatedProperty).SetValue(instance, value, null);
-            }
-
-            return instance;
+            return entityType.GetProperty(entityPropertyName);
         }
 
         #endregion
