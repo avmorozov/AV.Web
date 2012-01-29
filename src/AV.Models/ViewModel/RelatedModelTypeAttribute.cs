@@ -1,4 +1,10 @@
-﻿using System;
+﻿// -----------------------------------------------------------------------
+// <copyright file="RelatedModelTypeAttribute.cs" company="ILabs NoWare">
+//   (c) Alexander Morozov, 2012
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System;
 
 namespace AV.Models.ViewModel
 {
@@ -14,11 +20,17 @@ namespace AV.Models.ViewModel
         ///   Initializes a new instance of the <see cref="RelatedModelTypeAttribute" /> class.
         /// </summary>
         /// <param name="relatedType"> The related type. </param>
-        public RelatedModelTypeAttribute(Type relatedType, string relatedProperty = "Id")
+        public RelatedModelTypeAttribute(Type relatedType, string relatedProperty)
         {
             RelatedType = relatedType;
             RelatedProperty = relatedProperty;
         }
+
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="RelatedModelTypeAttribute" /> class.
+        /// </summary>
+        /// <param name="relatedType"> The related type. </param>
+        public RelatedModelTypeAttribute(Type relatedType) : this(relatedType, "Id") {}
 
         #endregion
 

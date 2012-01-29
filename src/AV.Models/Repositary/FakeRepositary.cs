@@ -96,7 +96,7 @@ namespace AV.Models.Repositary
         /// </summary>
         public void Dispose()
         {
-            this._memoryBuffer.Clear();
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 

@@ -11,8 +11,11 @@ namespace AV.Models.Repositary
     /// <summary>
     ///   Custom exception for fake repositary
     /// </summary>
+    [Serializable]
     public class FakeRepositaryException : Exception
     {
+        public FakeRepositaryException() {}
+
         public FakeRepositaryException(string message) : base(message) {}
     }
 }
