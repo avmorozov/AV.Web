@@ -13,7 +13,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.Practices.ServiceLocation;
 
-namespace AV.Models.Repositary
+namespace AV.Models
 {
     /// <summary>
     ///   Fake repositary based on list in memory (for testing purposes)

@@ -4,11 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace AV.Models.Repositary
-{
-    using System;
-    using System.Linq;
+using System;
+using System.Linq;
 
+namespace AV.Models
+{
     /// <summary>
     ///   Base repositary interface
     /// </summary>

@@ -58,11 +58,11 @@
     <Compile Include="IEntity.cs" />
     <Compile Include="IViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Repositary\FakeRepositary.cs" />
-    <Compile Include="Repositary\FakeRepositaryException.cs" />
-    <Compile Include="Repositary\IRepositary.cs" />
-    <Compile Include="ViewModel\RelatedModelTypeAttribute.cs" />
-    <Compile Include="ViewModel\ViewModelHelper.cs" />
+    <Compile Include="FakeRepositary.cs" />
+    <Compile Include="FakeRepositaryException.cs" />
+    <Compile Include="IRepositary.cs" />
+    <Compile Include="RelatedModelTypeAttribute.cs" />
+    <Compile Include="ViewModelHelper.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

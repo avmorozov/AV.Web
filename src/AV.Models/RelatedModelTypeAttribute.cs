@@ -6,7 +6,7 @@
 
 using System;
 
-namespace AV.Models.ViewModel
+namespace AV.Models
 {
     /// <summary>
     ///   Attribute to define a reference to a model dectionary entity
@@ -22,8 +22,8 @@ namespace AV.Models.ViewModel
         /// <param name="relatedType"> The related type. </param>
         public RelatedModelTypeAttribute(Type relatedType, string relatedProperty)
         {
-            RelatedType = relatedType;
-            RelatedProperty = relatedProperty;
+            this.RelatedType = relatedType;
+            this.RelatedProperty = relatedProperty;
         }
 
         /// <summary>

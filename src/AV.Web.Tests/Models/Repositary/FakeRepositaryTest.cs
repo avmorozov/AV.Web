@@ -10,8 +10,6 @@ namespace AV.Web.Tests.Models.Repositary
     using System.Linq;
 
     using AV.Models;
-    using AV.Models.Repositary;
-
     using FluentAssertions;
 
     using Microsoft.Practices.ServiceLocation;

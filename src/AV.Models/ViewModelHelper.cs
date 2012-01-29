@@ -9,10 +9,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using AV.Models.Repositary;
 using Microsoft.Practices.ServiceLocation;
 
-namespace AV.Models.ViewModel
+namespace AV.Models
 {
     /// <summary>
     ///   Common viewmodel functions.

@@ -9,8 +9,6 @@ namespace AV.Web.Tests.Models.ViewModel
     using System;
 
     using AV.Models;
-    using AV.Models.ViewModel;
-
     using FluentAssertions;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;

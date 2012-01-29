@@ -7,7 +7,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace AV.Models.Repositary
+namespace AV.Models
 {
     /// <summary>
     ///   Custom exception for fake repositary
