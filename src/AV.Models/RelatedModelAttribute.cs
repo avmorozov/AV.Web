@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="RelatedModelTypeAttribute.cs" company="ILabs NoWare">
+// <copyright file="RelatedModelAttribute.cs" company="ILabs NoWare">
 //   (c) Alexander Morozov, 2012
 // </copyright>
 // -----------------------------------------------------------------------
@@ -12,30 +12,25 @@ namespace AV.Models
     ///   Attribute to define a reference to a model dectionary entity
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public sealed class RelatedModelTypeAttribute : Attribute
+    public sealed class RelatedModelAttribute : Attribute
     {
         #region Constructors and Destructors
 
         /// <summary>
-        ///   Initializes a new instance of the <see cref="RelatedModelTypeAttribute" /> class.
+        ///   Initializes a new instance of the <see cref="RelatedModelAttribute" /> class.
         /// </summary>
         /// <param name="relatedType"> The related type. </param>
-        public RelatedModelTypeAttribute(Type relatedType, string relatedProperty)
+        /// <param name="relatedProperty"> The related property </param>
+        public RelatedModelAttribute(Type relatedType, string relatedProperty)
         {
-            this.RelatedType = relatedType;
-            this.RelatedProperty = relatedProperty;
+            RelatedType = relatedType;
+            RelatedProperty = relatedProperty;
         }
-
-        /// <summary>
-        ///   Initializes a new instance of the <see cref="RelatedModelTypeAttribute" /> class.
-        /// </summary>
-        /// <param name="relatedType"> The related type. </param>
-        public RelatedModelTypeAttribute(Type relatedType) : this(relatedType, "Id") {}
-
+        
         #endregion
 
         #region Public Properties
-
+        
         /// <summary>
         ///   Gets or sets RelatedProperty.
         /// </summary>

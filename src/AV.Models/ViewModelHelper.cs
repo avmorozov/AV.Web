@@ -21,6 +21,12 @@ namespace AV.Models
         #region Constants and Fields
 
         /// <summary>
+        ///   Flags to select persisted properties
+        /// </summary>
+        private const BindingFlags PersistedPropertiesFlags =
+            BindingFlags.SetProperty | BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance;
+
+        /// <summary>
         ///   First or default Queryable generic method
         /// </summary>
         private static readonly MethodInfo FirstOrDefaultGenericMethod =
@@ -38,66 +44,82 @@ namespace AV.Models
         /// <param name="entity"> The entity </param>
         public static void Fill(this IViewModel viewModel, IEntity entity)
         {
-            Dictionary<string, PropertyInfo> entityProps = entity.GetType().GetProperties()
-                .ToDictionary(x => x.Name);
+            var viewModelType = viewModel.GetType();
+            var entityType = entity.GetType();
 
-            IEnumerable<PropertyInfo> viewModelProps = viewModel.GetType().GetProperties()
-                .Where(x => !x.GetIndexParameters().Any());
+            // select mapped properties
+            var mapping = (from property in viewModelType.GetProperties(PersistedPropertiesFlags)
+                           where !property.GetIndexParameters().Any() &&
+                                 (entityType.GetProperty(property.Name, property.PropertyType, new Type[] {}) != null
+                                  || property.GetCustomAttributes(typeof (EntityPropertyAttribute), true).Any()
+                                  || property.GetCustomAttributes(typeof (RelatedModelAttribute), true).Any())
+                           select GetPropertyMap(property, entity)).ToList();
 
-            foreach (PropertyInfo viewModelProperty in viewModelProps)
+            foreach (var propertyMap in mapping)
             {
-                if (!entityProps.ContainsKey(viewModelProperty.Name))
-                    continue;
-
-                PropertyInfo entityProperty = entityProps[viewModelProperty.Name];
-                object value = entityProperty.GetValue(entity, null);
-
-                var relatedModelTypeAttribute =
-                    viewModelProperty.GetCustomAttributes(typeof (RelatedModelTypeAttribute), true).FirstOrDefault() as
-                    RelatedModelTypeAttribute;
-
-                if (relatedModelTypeAttribute != null)
-                {
-                    Type relatedType = relatedModelTypeAttribute.RelatedType;
-                    string relatedProperty = string.IsNullOrEmpty(relatedModelTypeAttribute.RelatedProperty)
-                                                 ? "Id"
-                                                 : relatedModelTypeAttribute.RelatedProperty;
-
-                    value = relatedType.GetProperty(relatedProperty).GetValue(value, null);
-                }
-                viewModelProperty.SetValue(viewModel, value, null);
+                if (propertyMap.Value != null)
+                    propertyMap.Key.SetValue(viewModel, propertyMap.Value, null);
             }
+        }
+
+        /// <summary>
+        ///   Get property map
+        /// </summary>
+        /// <param name="property"> ViewModel propety </param>
+        /// <param name="entity"> Entity property </param>
+        /// <returns> </returns>
+        private static KeyValuePair<PropertyInfo, object> GetPropertyMap(PropertyInfo property, IEntity entity)
+        {
+            var entityPropertyValue = GetEntityProperty(property, entity).GetValue(entity, null);
+            
+            var modelAttribute = property.GetCustomAttributes(typeof (RelatedModelAttribute), true)
+                                     .FirstOrDefault() as RelatedModelAttribute;
+            if (modelAttribute == null)
+                return new KeyValuePair<PropertyInfo, object>(property, entityPropertyValue);
+
+            var relatedValue = modelAttribute.RelatedType.GetProperty(modelAttribute.RelatedProperty)
+                .GetValue(entityPropertyValue, null);
+            return new KeyValuePair<PropertyInfo, object>(property, relatedValue);
         }
 
         /// <summary>
         ///   Updates entity properties by view model properies
         /// </summary>
         /// <param name="entity"> The entity. </param>
-        public static void UpdateProperties(this IViewModel viewModel, IEntity entity)
+        public static void Update(this IViewModel viewModel, IEntity entity)
         {
-            Dictionary<string, PropertyInfo> entityProps = entity.GetType().GetProperties().ToDictionary(x => x.Name);
-            PropertyInfo[] viewModelProps = viewModel.GetType().GetProperties();
+            var viewModelType = viewModel.GetType();
+            var entityType = entity.GetType();
 
-            foreach (PropertyInfo viewModelProperty in viewModelProps)
+            // select mapped properties
+            var mapping = (from property in viewModelType.GetProperties(PersistedPropertiesFlags)
+                           where !property.GetIndexParameters().Any() &&
+                                 !property.GetCustomAttributes(typeof(RelatedModelAttribute), true).Any() &&
+                                 (entityType.GetProperty(property.Name, property.PropertyType, new Type[] {}) != null
+                                  || property.GetCustomAttributes(typeof (EntityPropertyAttribute), true).Any())
+                           select new KeyValuePair<PropertyInfo, object>(
+                               GetEntityProperty(property, entity),
+                               property.GetValue(viewModel, null)))
+                .ToList();
+
+            foreach (var propertyMap in mapping)
             {
-                if (!entityProps.ContainsKey(viewModelProperty.Name))
-                    continue;
-
-                object value = viewModelProperty.GetValue(viewModel, null);
-                PropertyInfo entityProperty = entityProps[viewModelProperty.Name];
-
-                var relatedModelTypeAttribute =
-                    viewModelProperty.GetCustomAttributes(typeof (RelatedModelTypeAttribute), true).FirstOrDefault() as
-                    RelatedModelTypeAttribute;
-
-                if (relatedModelTypeAttribute != null)
-                {
-                    object instance = LoadOrCreateFromRepositary(relatedModelTypeAttribute, value);
-                    entityProperty.SetValue(entity, instance, null);
-                }
-                else if (viewModelProperty.PropertyType.IsAssignableFrom(entityProperty.PropertyType))
-                    entityProperty.SetValue(entity, value, null);
+                if (propertyMap.Value != null)
+                    propertyMap.Key.SetValue(entity, propertyMap.Value, null);
             }
+        }
+
+        private static PropertyInfo GetEntityProperty(PropertyInfo property, IEntity entity)
+        {
+            var entityType = entity.GetType();
+            
+            var propertyAttribute = property.GetCustomAttributes(typeof(EntityPropertyAttribute), true)
+                                        .FirstOrDefault() as EntityPropertyAttribute;
+            var entityPropertyName = (propertyAttribute != null)
+                                         ? propertyAttribute.EntityProperty
+                                         : property.Name;
+
+             return entityType.GetProperty(entityPropertyName);
         }
 
         #endregion
@@ -110,7 +132,7 @@ namespace AV.Models
         /// <param name="attribute"> The related model type attribute. </param>
         /// <param name="value"> The value of related property. </param>
         /// <returns> Instance of related entity </returns>
-        private static object LoadOrCreateFromRepositary(RelatedModelTypeAttribute attribute, object value)
+        private static object LoadOrCreateFromRepositary(RelatedModelAttribute attribute, object value)
         {
             Type relatedType = attribute.RelatedType;
             string relatedProperty = string.IsNullOrEmpty(attribute.RelatedProperty) ? "Id" : attribute.RelatedProperty;
