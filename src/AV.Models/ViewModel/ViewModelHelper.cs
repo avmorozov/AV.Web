@@ -1,19 +1,19 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="ViewModelBase.cs" company="Александр Морозов">
-//   (c) Александр Морозов, 2012
+// <copyright file="ViewModelHelper.cs" company="ILabs NoWare">
+//   (c) Alexander Morozov, 2012
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using AV.Models.Repositary;
+using Microsoft.Practices.ServiceLocation;
+
 namespace AV.Models.ViewModel
 {
-    using System.Linq;
-    using System.Linq.Expressions;
-    using System.Reflection;
-
-    using AV.Models.Repositary;
-
-    using Microsoft.Practices.ServiceLocation;
-
     /// <summary>
     ///   Common viewmodel functions.
     /// </summary>
@@ -25,7 +25,7 @@ namespace AV.Models.ViewModel
         ///   First or default Queryable generic method
         /// </summary>
         private static readonly MethodInfo FirstOrDefaultGenericMethod =
-            typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(
+            typeof (Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(
                 x => x.Name == "FirstOrDefault" && x.GetParameters().Length == 2);
 
         #endregion
@@ -39,30 +39,30 @@ namespace AV.Models.ViewModel
         /// <param name="entity"> The entity </param>
         public static void Fill(this IViewModel viewModel, IEntity entity)
         {
-            var entityProps = entity.GetType().GetProperties()                
+            Dictionary<string, PropertyInfo> entityProps = entity.GetType().GetProperties()
                 .ToDictionary(x => x.Name);
 
-            var viewModelProps = viewModel.GetType().GetProperties()
+            IEnumerable<PropertyInfo> viewModelProps = viewModel.GetType().GetProperties()
                 .Where(x => !x.GetIndexParameters().Any());
 
-            foreach (var viewModelProperty in viewModelProps)
+            foreach (PropertyInfo viewModelProperty in viewModelProps)
             {
                 if (!entityProps.ContainsKey(viewModelProperty.Name))
                     continue;
 
-                var entityProperty = entityProps[viewModelProperty.Name];
-                var value = entityProperty.GetValue(entity, null);
+                PropertyInfo entityProperty = entityProps[viewModelProperty.Name];
+                object value = entityProperty.GetValue(entity, null);
 
                 var relatedModelTypeAttribute =
-                    viewModelProperty.GetCustomAttributes(typeof(RelatedModelTypeAttribute), true).FirstOrDefault() as
+                    viewModelProperty.GetCustomAttributes(typeof (RelatedModelTypeAttribute), true).FirstOrDefault() as
                     RelatedModelTypeAttribute;
 
                 if (relatedModelTypeAttribute != null)
                 {
-                    var relatedType = relatedModelTypeAttribute.RelatedType;
-                    var relatedProperty = string.IsNullOrEmpty(relatedModelTypeAttribute.RelatedProperty)
-                                              ? "Id"
-                                              : relatedModelTypeAttribute.RelatedProperty;
+                    Type relatedType = relatedModelTypeAttribute.RelatedType;
+                    string relatedProperty = string.IsNullOrEmpty(relatedModelTypeAttribute.RelatedProperty)
+                                                 ? "Id"
+                                                 : relatedModelTypeAttribute.RelatedProperty;
 
                     value = relatedType.GetProperty(relatedProperty).GetValue(value, null);
                 }
@@ -76,24 +76,24 @@ namespace AV.Models.ViewModel
         /// <param name="entity"> The entity. </param>
         public static void UpdateProperties(this IViewModel viewModel, IEntity entity)
         {
-            var entityProps = entity.GetType().GetProperties().ToDictionary(x => x.Name);
-            var viewModelProps = viewModel.GetType().GetProperties();
+            Dictionary<string, PropertyInfo> entityProps = entity.GetType().GetProperties().ToDictionary(x => x.Name);
+            PropertyInfo[] viewModelProps = viewModel.GetType().GetProperties();
 
-            foreach (var viewModelProperty in viewModelProps)
+            foreach (PropertyInfo viewModelProperty in viewModelProps)
             {
                 if (!entityProps.ContainsKey(viewModelProperty.Name))
                     continue;
 
-                var value = viewModelProperty.GetValue(viewModel, null);
-                var entityProperty = entityProps[viewModelProperty.Name];
+                object value = viewModelProperty.GetValue(viewModel, null);
+                PropertyInfo entityProperty = entityProps[viewModelProperty.Name];
 
                 var relatedModelTypeAttribute =
-                    viewModelProperty.GetCustomAttributes(typeof(RelatedModelTypeAttribute), true).FirstOrDefault() as
+                    viewModelProperty.GetCustomAttributes(typeof (RelatedModelTypeAttribute), true).FirstOrDefault() as
                     RelatedModelTypeAttribute;
 
                 if (relatedModelTypeAttribute != null)
                 {
-                    var instance = LoadOrCreateFromRepositary(relatedModelTypeAttribute, value);
+                    object instance = LoadOrCreateFromRepositary(relatedModelTypeAttribute, value);
                     entityProperty.SetValue(entity, instance, null);
                 }
                 else if (viewModelProperty.PropertyType.IsAssignableFrom(entityProperty.PropertyType))
@@ -113,24 +113,24 @@ namespace AV.Models.ViewModel
         /// <returns> Instance of related entity </returns>
         private static object LoadOrCreateFromRepositary(RelatedModelTypeAttribute attribute, object value)
         {
-            var relatedType = attribute.RelatedType;
-            var relatedProperty = string.IsNullOrEmpty(attribute.RelatedProperty) ? "Id" : attribute.RelatedProperty;
+            Type relatedType = attribute.RelatedType;
+            string relatedProperty = string.IsNullOrEmpty(attribute.RelatedProperty) ? "Id" : attribute.RelatedProperty;
 
-            var repositaryType = typeof(IRepositary<>).MakeGenericType(new[] { relatedType });
-            var repositary = ServiceLocator.Current.GetInstance(repositaryType);
+            Type repositaryType = typeof (IRepositary<>).MakeGenericType(new[] {relatedType});
+            object repositary = ServiceLocator.Current.GetInstance(repositaryType);
 
-            var lambdaParam = Expression.Parameter(relatedType, "x");
-            var predicate =
+            ParameterExpression lambdaParam = Expression.Parameter(relatedType, "x");
+            LambdaExpression predicate =
                 Expression.Lambda(
                     Expression.Equal(Expression.Property(lambdaParam, relatedProperty), Expression.Constant(value)),
                     lambdaParam);
 
-            var firstOrDefaultMethod = FirstOrDefaultGenericMethod.MakeGenericMethod(new[] { relatedType });
-            var instance = firstOrDefaultMethod.Invoke(null, new[] { repositary, predicate });
+            MethodInfo firstOrDefaultMethod = FirstOrDefaultGenericMethod.MakeGenericMethod(new[] {relatedType});
+            object instance = firstOrDefaultMethod.Invoke(null, new[] {repositary, predicate});
 
             if (instance == null)
             {
-                instance = repositaryType.GetMethod("New").Invoke(repositary, null);
+                instance = repositaryType.GetMethod("Create").Invoke(repositary, null);
                 relatedType.GetProperty(relatedProperty).SetValue(instance, value, null);
             }
 

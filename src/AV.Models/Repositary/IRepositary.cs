@@ -21,8 +21,8 @@ namespace AV.Models.Repositary
         /// <summary>
         ///   Creates new instance of entity using repositary infrastructure
         /// </summary>
-        /// <returns> New instance of entity type </returns>
-        TEntity New();
+        /// <returns> Create instance of entity type </returns>
+        TEntity Create();
 
         /// <summary>
         ///   Updates data using entity key

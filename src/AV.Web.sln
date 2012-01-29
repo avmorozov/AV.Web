@@ -11,6 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AV.Web.Tests", "AV.Web.Test
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E5D99302-3A35-44D8-BAE4-4A218F714BA6}"
 	ProjectSection(SolutionItems) = preProject
+		AV.Web.snk = AV.Web.snk
 		AV.Web.vsmdi = AV.Web.vsmdi
 		Local.testsettings = Local.testsettings
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings

@@ -30,6 +30,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>AV.Web.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Practices.ServiceLocation">
       <HintPath>..\packages\CommonServiceLocator.1.0\lib\NET35\Microsoft.Practices.ServiceLocation.dll</HintPath>
@@ -53,12 +59,14 @@
     <Compile Include="IViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositary\FakeRepositary.cs" />
+    <Compile Include="Repositary\FakeRepositaryException.cs" />
     <Compile Include="Repositary\IRepositary.cs" />
     <Compile Include="ViewModel\RelatedModelTypeAttribute.cs" />
     <Compile Include="ViewModel\ViewModelHelper.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <None Include="AV.Web.snk" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

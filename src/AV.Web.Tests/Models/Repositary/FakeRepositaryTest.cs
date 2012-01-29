@@ -81,8 +81,8 @@ namespace AV.Web.Tests.Models.Repositary
         [TestInitialize]
         public void ClearMemoryBuffer()
         {
-            SimpleEntitiesRepositary.MemoryBuffer.Clear();
-            AggregationEntitiesRepositary.MemoryBuffer.Clear();
+            SimpleEntitiesRepositary.Clear();
+            AggregationEntitiesRepositary.Clear();
         }
 
         /// <summary>
