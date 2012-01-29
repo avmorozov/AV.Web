@@ -3,3 +3,6 @@ bin/
 obj/
 TestResults/
 *.suo
+
+*.nuspec
+src/AV*.nupkg
