@@ -1,19 +1,19 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="ViewModelHelpersTest.cs" company="ILabs NoWare">
-//   (c) Alexander Morozov, 2012
+// <copyright file="ViewModelHelpersTest.cs" company="Александр Морозов">
+//   (c) Александр Морозов, 2012
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
-using System.Linq;
-using AV.Models;
-using FluentAssertions;
-using Microsoft.Practices.ServiceLocation;
-using Microsoft.Practices.Unity;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace AV.Web.Tests.Models.ViewModel
 {
+    using System;
+
+    using AV.Models;
+
+    using FluentAssertions;
+
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+
     /// <summary>
     ///   Tests viewmodel helper functions
     /// </summary>
@@ -27,11 +27,7 @@ namespace AV.Web.Tests.Models.ViewModel
         public void SimplePropertyMappingFill()
         {
             var entity = new SimpleEntity
-                             {
-                                 Name = "Awesome name",
-                                 Birthday = new DateTime(2000, 01, 02),
-                                 Marrige = new DateTime(2010, 02, 03)
-                             };
+                { Name = "Awesome name", Birthday = new DateTime(2000, 01, 02), Marrige = new DateTime(2010, 02, 03) };
             var viewmodel = new SimpleViewModel();
 
             viewmodel.Fill(entity);
@@ -48,8 +44,9 @@ namespace AV.Web.Tests.Models.ViewModel
         [TestMethod]
         public void SimplePropertyMappingUpdate()
         {
-            var entity = new SimpleEntity {Id = 1, Name = "Awesome name", Birthday = new DateTime(2000, 01, 02)};
-            var viewmodel = new SimpleViewModel {Name = "Awefull name", Birthday = new DateTime(2001, 02, 03), Wedding = new DateTime(2010, 03, 04)};
+            var entity = new SimpleEntity { Id = 1, Name = "Awesome name", Birthday = new DateTime(2000, 01, 02) };
+            var viewmodel = new SimpleViewModel
+                { Name = "Awefull name", Birthday = new DateTime(2001, 02, 03), Wedding = new DateTime(2010, 03, 04) };
 
             viewmodel.Update(entity);
 
@@ -66,10 +63,7 @@ namespace AV.Web.Tests.Models.ViewModel
         public void DictionaryPropertyFill()
         {
             var entity = new AggregateEntity
-                             {
-                                 Name = "Awesome Aggregate",
-                                 EntityFromDictionary = new SimpleEntity {Name = "Awefull object"}
-                             };
+                { Name = "Awesome Aggregate", EntityFromDictionary = new SimpleEntity { Name = "Awefull object" } };
             var viewModel = new AggregateViewModel();
 
             viewModel.Fill(entity);
@@ -84,7 +78,7 @@ namespace AV.Web.Tests.Models.ViewModel
         [TestMethod]
         public void DictionaryPropertyUpdate()
         {
-            var viewModel = new AggregateViewModel {Name = "Awesome name", ValueFromDictionary = "Awefull object"};
+            var viewModel = new AggregateViewModel { Name = "Awesome name", ValueFromDictionary = "Awefull object" };
             var entity = new AggregateEntity();
 
             viewModel.Update(entity);
@@ -108,7 +102,7 @@ namespace AV.Web.Tests.Models.ViewModel
         public DateTime Birthday { get; set; }
 
         [EntityProperty("Marrige")]
-        public DateTime Wedding { get; set; }        
+        public DateTime Wedding { get; set; }
     }
 
     /// <summary>
@@ -135,7 +129,7 @@ namespace AV.Web.Tests.Models.ViewModel
     public class AggregateEntity : IEntity
     {
         public string Name { get; set; }
-        
+
         public SimpleEntity EntityFromDictionary { get; set; }
 
         #region IEntity Members
@@ -153,7 +147,7 @@ namespace AV.Web.Tests.Models.ViewModel
         public string Name { get; set; }
 
         [EntityProperty("EntityFromDictionary")]
-        [RelatedModel(typeof (SimpleEntity), "Name")]
+        [RelatedModel(typeof(SimpleEntity), "Name")]
         public string ValueFromDictionary { get; set; }
     }
 

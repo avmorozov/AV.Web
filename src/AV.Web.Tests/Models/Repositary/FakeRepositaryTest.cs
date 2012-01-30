@@ -237,7 +237,7 @@ namespace AV.Web.Tests.Models.Repositary
         ///   Updates the enity.
         /// </summary>
         [TestMethod]
-        public void UpdateEnity()
+        public void UpdateEntity()
         {
             var entity = new SimpleEntity { Name = "Awesome string" };
             SimpleEntitiesRepositary.Save(entity);
@@ -256,7 +256,7 @@ namespace AV.Web.Tests.Models.Repositary
         ///   Check update operation is updating properties
         /// </summary>
         [TestMethod]
-        public void UpdateEntity()
+        public void ReloadEntity()
         {
             var entity = new SimpleEntity { Name = "Awesome string" };
             SimpleEntitiesRepositary.Save(entity);
@@ -264,11 +264,12 @@ namespace AV.Web.Tests.Models.Repositary
 
             SimpleEntitiesRepositary.Update(entityToUpdate);
 
-            entityToUpdate.Name.Should().Be(entity.Name);
+            entityToUpdate.Name.Should().Be("Awesome string");
         }
 
         #endregion
 
+        #region Sample entities
         /// <summary>
         ///   Sample entity to test aggregations
         /// </summary>
@@ -324,6 +325,7 @@ namespace AV.Web.Tests.Models.Repositary
             public string Name { get; set; }
 
             #endregion
-        }
+        } 
+        #endregion
     }
 }
