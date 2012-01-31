@@ -144,9 +144,15 @@ namespace AV.Database
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Delete entity from database
+        /// </summary>
+        /// <param name="obj"></param>
         public void Remove(TEntity obj)
         {
-            throw new NotImplementedException();
+            if (_dbContext.Entry(obj).State == System.Data.EntityState.Detached) 
+                _entitySet.Remove(obj);
+            _dbContext.SaveChanges();
         }
 
         /// <summary>
@@ -154,7 +160,7 @@ namespace AV.Database
         /// </summary>
         /// <param name="obj">The object to save.</param>
         public void Save(TEntity obj)
-        {
+        {            
             if (_dbContext.Entry(obj).State == System.Data.EntityState.Detached)
                 _entitySet.Add(obj);
             _dbContext.SaveChanges();

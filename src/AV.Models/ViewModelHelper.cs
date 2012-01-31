@@ -24,13 +24,6 @@ namespace AV.Models
         private const BindingFlags PersistedPropertiesFlags =
             BindingFlags.SetProperty | BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance;
 
-        /// <summary>
-        ///   First or default Queryable generic method
-        /// </summary>
-        private static readonly MethodInfo FirstOrDefaultGenericMethod =
-            typeof (Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(
-                x => x.Name == "FirstOrDefault" && x.GetParameters().Length == 2);
-
         #endregion
 
         #region Public Methods

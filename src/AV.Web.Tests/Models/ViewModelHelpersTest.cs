@@ -4,7 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace AV.Web.Tests.Models.ViewModel
+namespace AV.Web.Tests.Models
 {
     using System;
 

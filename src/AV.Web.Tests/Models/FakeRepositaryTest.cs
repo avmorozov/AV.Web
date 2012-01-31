@@ -4,12 +4,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace AV.Web.Tests.Models.Repositary
+namespace AV.Web.Tests.Models
 {
     using System.Collections.Generic;
     using System.Linq;
 
     using AV.Models;
+
     using FluentAssertions;
 
     using Microsoft.Practices.ServiceLocation;
@@ -79,8 +80,8 @@ namespace AV.Web.Tests.Models.Repositary
         [TestInitialize]
         public void ClearMemoryBuffer()
         {
-            SimpleEntitiesRepositary.Clear();
-            AggregationEntitiesRepositary.Clear();
+            this.SimpleEntitiesRepositary.Clear();
+            this.AggregationEntitiesRepositary.Clear();
         }
 
         /// <summary>
@@ -90,13 +91,13 @@ namespace AV.Web.Tests.Models.Repositary
         public void ClearRepositary()
         {
             var entity = new SimpleEntity { Name = "Awesome string" };
-            SimpleEntitiesRepositary.Save(entity);
+            this.SimpleEntitiesRepositary.Save(entity);
 
-            SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
-            SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(entity);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(entity);
 
-            SimpleEntitiesRepositary.Clear();
-            SimpleEntitiesRepositary.MemoryBuffer.Should().BeEmpty();
+            this.SimpleEntitiesRepositary.Clear();
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().BeEmpty();
         }
 
         /// <summary>
@@ -108,12 +109,12 @@ namespace AV.Web.Tests.Models.Repositary
             var aggregationEntity = new AggregationEntity { Name = "Awesome aggregation" };
             aggregationEntity.OneToOne = new SimpleEntity { Name = "Awesome string" };
 
-            AggregationEntitiesRepositary.Save(aggregationEntity);
+            this.AggregationEntitiesRepositary.Save(aggregationEntity);
 
-            AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
-            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(aggregationEntity);
-            SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
-            SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(aggregationEntity.OneToOne);
+            this.AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
+            this.AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(aggregationEntity);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(aggregationEntity.OneToOne);
         }
 
         /// <summary>
@@ -125,12 +126,12 @@ namespace AV.Web.Tests.Models.Repositary
             var aggregationEntity = new AggregationEntity { Name = "Awesome aggregation" };
             aggregationEntity.OneToOne = new SimpleEntity { Name = "Awesome string" };
 
-            AggregationEntitiesRepositary.Save(aggregationEntity);
-            SimpleEntitiesRepositary.Remove(aggregationEntity.OneToOne);
+            this.AggregationEntitiesRepositary.Save(aggregationEntity);
+            this.SimpleEntitiesRepositary.Remove(aggregationEntity.OneToOne);
 
-            AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
-            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(aggregationEntity);
-            SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(0);
+            this.AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
+            this.AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(aggregationEntity);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(0);
         }
 
         /// <summary>
@@ -140,13 +141,13 @@ namespace AV.Web.Tests.Models.Repositary
         public void DeleteEntity()
         {
             var entity = new SimpleEntity { Name = "Awesome string" };
-            SimpleEntitiesRepositary.Save(entity);
+            this.SimpleEntitiesRepositary.Save(entity);
 
-            SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
-            SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(entity);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(entity);
 
-            SimpleEntitiesRepositary.Remove(entity);
-            SimpleEntitiesRepositary.MemoryBuffer.Should().BeEmpty();
+            this.SimpleEntitiesRepositary.Remove(entity);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().BeEmpty();
         }
 
         /// <summary>
@@ -156,9 +157,9 @@ namespace AV.Web.Tests.Models.Repositary
         public void GetSavedEntity()
         {
             var entity = new SimpleEntity { Name = "Awesome string" };
-            SimpleEntitiesRepositary.Save(entity);
+            this.SimpleEntitiesRepositary.Save(entity);
 
-            SimpleEntitiesRepositary.Single(x => x.Id == 1).Should().Be(entity);
+            this.SimpleEntitiesRepositary.Single(x => x.Id == 1).Should().Be(entity);
         }
 
         /// <summary>
@@ -168,9 +169,9 @@ namespace AV.Web.Tests.Models.Repositary
         public void LINQCanBeExecuted()
         {
             var entity = new SimpleEntity { Name = "Awesome string" };
-            SimpleEntitiesRepositary.Save(entity);
+            this.SimpleEntitiesRepositary.Save(entity);
 
-            var result = (from e in SimpleEntitiesRepositary where e.Name.Contains("Awesome") select e).First();
+            var result = (from e in this.SimpleEntitiesRepositary where e.Name.Contains("Awesome") select e).First();
 
             result.Should().Be(entity);
         }
@@ -195,10 +196,10 @@ namespace AV.Web.Tests.Models.Repositary
                 }
             }
 
-            nodes.ForEach(x => AggregationEntitiesRepositary.Save(x));
+            nodes.ForEach(x => this.AggregationEntitiesRepositary.Save(x));
 
-            AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(NodesCount);
-            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(nodes);
+            this.AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(NodesCount);
+            this.AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(nodes);
         }
 
         /// <summary>
@@ -214,11 +215,11 @@ namespace AV.Web.Tests.Models.Repositary
                 parent.ManyToOne.Add(child);
             }
 
-            AggregationEntitiesRepositary.Save(parent);
+            this.AggregationEntitiesRepositary.Save(parent);
 
-            AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(11);
-            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(parent);
-            AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(parent.ManyToOne);
+            this.AggregationEntitiesRepositary.MemoryBuffer.Should().HaveCount(11);
+            this.AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(parent);
+            this.AggregationEntitiesRepositary.MemoryBuffer.Should().Contain(parent.ManyToOne);
         }
 
         /// <summary>
@@ -228,9 +229,9 @@ namespace AV.Web.Tests.Models.Repositary
         public void SaveEntity()
         {
             var entity = new SimpleEntity { Name = "Awesome string" };
-            SimpleEntitiesRepositary.Save(entity);
+            this.SimpleEntitiesRepositary.Save(entity);
 
-            SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(entity);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(entity);
         }
 
         /// <summary>
@@ -240,16 +241,16 @@ namespace AV.Web.Tests.Models.Repositary
         public void UpdateEntity()
         {
             var entity = new SimpleEntity { Name = "Awesome string" };
-            SimpleEntitiesRepositary.Save(entity);
+            this.SimpleEntitiesRepositary.Save(entity);
 
-            SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
-            SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(entity);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(entity);
 
             entity.Name = "На на на";
-            SimpleEntitiesRepositary.Save(entity);
+            this.SimpleEntitiesRepositary.Save(entity);
 
-            SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
-            SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(entity);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().HaveCount(1);
+            this.SimpleEntitiesRepositary.MemoryBuffer.Should().Contain(entity);
         }
 
         /// <summary>
@@ -259,10 +260,10 @@ namespace AV.Web.Tests.Models.Repositary
         public void ReloadEntity()
         {
             var entity = new SimpleEntity { Name = "Awesome string" };
-            SimpleEntitiesRepositary.Save(entity);
+            this.SimpleEntitiesRepositary.Save(entity);
             var entityToUpdate = new SimpleEntity { Id = entity.Id, Name = "Something else" };
 
-            SimpleEntitiesRepositary.Update(entityToUpdate);
+            this.SimpleEntitiesRepositary.Update(entityToUpdate);
 
             entityToUpdate.Name.Should().Be("Awesome string");
         }
@@ -279,9 +280,9 @@ namespace AV.Web.Tests.Models.Repositary
 
             public AggregationEntity()
             {
-                ManyToOne = new List<AggregationEntity>();
-                ManyToManyFrom = new List<AggregationEntity>();
-                ManyToManyTo = new List<AggregationEntity>();
+                this.ManyToOne = new List<AggregationEntity>();
+                this.ManyToManyFrom = new List<AggregationEntity>();
+                this.ManyToManyTo = new List<AggregationEntity>();
             }
 
             #endregion

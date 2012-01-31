@@ -8,12 +8,13 @@ namespace AV.Web.Tests.Database
 {
     using System.Collections.Generic;
     using System.Data.Entity;
+    using System.Data.Entity.Infrastructure;
     using System.Data.Entity.ModelConfiguration;
     using System.Linq;
 
     using AV.Database;
     using AV.Models;
-    using AV.Web.Tests.Models.Repositary;
+    using AV.Web.Tests.Models;
 
     using FluentAssertions;
 
@@ -27,15 +28,28 @@ namespace AV.Web.Tests.Database
         #region Constructors and Destructors
 
         /// <summary>
+        ///   Init database file
+        /// </summary>
+        /// <param name="context"> </param>
+        [ClassInitialize]
+        public static void TestClassInitialize(TestContext context)
+        {
+            Database.DefaultConnectionFactory = new SqlCeConnectionFactory("System.Data.SqlServerCe.4.0");
+            using (var connection = Database.DefaultConnectionFactory.CreateConnection("AV.Web.Tests.Database.SampleDb")
+                )
+            {
+                if (Database.Exists(connection))
+                {
+                    Database.Delete(connection);
+                }
+            }
+        }
+
+        /// <summary>
         ///   Initializes a new instance of the <see cref="FakeRepositaryTest" /> class.
         /// </summary>
         public EntityRepositaryTest()
         {
-            using (var connection = Database.DefaultConnectionFactory.CreateConnection("AV.Web.Tests.Database.SampleDb"))
-            {
-                if (Database.Exists(connection)) Database.Delete(connection);
-            }
-
             IUnityContainer container = new UnityContainer();
             container.RegisterInstance(typeof(DbContext), new SampleDb());
             container.RegisterType<IRepositary<SimpleDbEntity>, EntityRepositary<SimpleDbEntity>>(
@@ -73,7 +87,9 @@ namespace AV.Web.Tests.Database
         {
             get
             {
-                return ServiceLocator.Current.GetInstance<IRepositary<SimpleDbEntity>>() as EntityRepositary<SimpleDbEntity>;
+                return
+                    ServiceLocator.Current.GetInstance<IRepositary<SimpleDbEntity>>() as
+                    EntityRepositary<SimpleDbEntity>;
             }
         }
 
@@ -85,10 +101,14 @@ namespace AV.Web.Tests.Database
         ///   Clears the memory buffer in repositary.
         /// </summary>
         [TestInitialize]
-        public void ClearMemoryBuffer()
+        public void ClearTables()
         {
             var dbContext = ServiceLocator.Current.GetInstance<DbContext>() as SampleDb;
-            dbContext.SimpleEntities.ToList().ForEach(x => dbContext.SimpleEntities.Remove(x));
+
+            dbContext.Database.ExecuteSqlCommand("DELETE FROM AggregationDbEntityAggregationDbEntities");
+            dbContext.Database.ExecuteSqlCommand("UPDATE AggregationDbEntities SET OneToMany_Id = NULL");
+            dbContext.Database.ExecuteSqlCommand("DELETE FROM SimpleDbEntities");
+            dbContext.Database.ExecuteSqlCommand("DELETE FROM AggregationDbEntities");
             dbContext.SaveChanges();
 
             dbContext.AggregationEntities.ToList().ForEach(x => dbContext.AggregationEntities.Remove(x));
@@ -105,7 +125,7 @@ namespace AV.Web.Tests.Database
             var aggregationEntity = new AggregationDbEntity { Name = "Awesome aggregation" };
             aggregationEntity.OneToOne = new SimpleDbEntity { Name = "Awesome string" };
 
-            this.AggregationEntitiesRepositary.Save(aggregationEntity);
+            AggregationEntitiesRepositary.Save(aggregationEntity);
 
             dbContext.AggregationEntities.Should().HaveCount(1);
             dbContext.AggregationEntities.Should().Contain(x => x.Id == aggregationEntity.Id);
@@ -123,8 +143,8 @@ namespace AV.Web.Tests.Database
             var aggregationEntity = new AggregationDbEntity { Name = "Awesome aggregation" };
             aggregationEntity.OneToOne = new SimpleDbEntity { Name = "Awesome string" };
 
-            this.AggregationEntitiesRepositary.Save(aggregationEntity);
-            this.SimpleEntitiesRepositary.Remove(aggregationEntity.OneToOne);
+            AggregationEntitiesRepositary.Save(aggregationEntity);
+            SimpleEntitiesRepositary.Remove(aggregationEntity.OneToOne);
 
             dbContext.AggregationEntities.Should().HaveCount(1);
             dbContext.SimpleEntities.Should().HaveCount(0);
@@ -138,11 +158,11 @@ namespace AV.Web.Tests.Database
         {
             var dbContext = ServiceLocator.Current.GetInstance<DbContext>() as SampleDb;
             var entity = new SimpleDbEntity { Name = "Awesome string" };
-            this.SimpleEntitiesRepositary.Save(entity);
+            SimpleEntitiesRepositary.Save(entity);
 
             dbContext.SimpleEntities.Should().HaveCount(1);
 
-            this.SimpleEntitiesRepositary.Remove(entity);
+            SimpleEntitiesRepositary.Remove(entity);
             dbContext.SimpleEntities.Should().HaveCount(0);
         }
 
@@ -153,9 +173,9 @@ namespace AV.Web.Tests.Database
         public void GetSavedEntity()
         {
             var entity = new SimpleDbEntity { Name = "Awesome string" };
-            this.SimpleEntitiesRepositary.Save(entity);
+            SimpleEntitiesRepositary.Save(entity);
 
-            this.SimpleEntitiesRepositary.Single(x => x.Id == 1).Name.Should().Be("Awesome string");
+            SimpleEntitiesRepositary.Single(x => x.Id == entity.Id).Name.Should().Be("Awesome string");
         }
 
         /// <summary>
@@ -165,9 +185,9 @@ namespace AV.Web.Tests.Database
         public void LINQCanBeExecuted()
         {
             var entity = new SimpleDbEntity { Name = "Awesome string" };
-            this.SimpleEntitiesRepositary.Save(entity);
+            SimpleEntitiesRepositary.Save(entity);
 
-            var result = (from e in this.SimpleEntitiesRepositary where e.Name.Contains("Awesome") select e).First();
+            var result = (from e in SimpleEntitiesRepositary where e.Name.Contains("Awesome") select e).First();
 
             result.Name.Should().Be("Awesome string");
         }
@@ -194,7 +214,7 @@ namespace AV.Web.Tests.Database
                 }
             }
 
-            nodes.ForEach(x => this.AggregationEntitiesRepositary.Save(x));
+            nodes.ForEach(x => AggregationEntitiesRepositary.Save(x));
 
             var dbContext = ServiceLocator.Current.GetInstance<DbContext>() as SampleDb;
             dbContext.AggregationEntities.Should().HaveCount(NodesCount);
@@ -214,7 +234,7 @@ namespace AV.Web.Tests.Database
                 parent.ManyToOne.Add(child);
             }
 
-            this.AggregationEntitiesRepositary.Save(parent);
+            AggregationEntitiesRepositary.Save(parent);
 
             var dbContext = ServiceLocator.Current.GetInstance<DbContext>() as SampleDb;
             dbContext.AggregationEntities.Should().HaveCount(11);
@@ -229,7 +249,7 @@ namespace AV.Web.Tests.Database
         public void SaveEntity()
         {
             var entity = new SimpleDbEntity { Name = "Awesome string" };
-            this.SimpleEntitiesRepositary.Save(entity);
+            SimpleEntitiesRepositary.Save(entity);
 
             var dbContext = ServiceLocator.Current.GetInstance<DbContext>() as SampleDb;
             dbContext.SimpleEntities.Should().Contain(x => x.Id == entity.Id);
@@ -243,12 +263,12 @@ namespace AV.Web.Tests.Database
         {
             var dbContext = ServiceLocator.Current.GetInstance<DbContext>() as SampleDb;
             var entity = new SimpleDbEntity { Name = "Awesome string" };
-            this.SimpleEntitiesRepositary.Save(entity);
+            SimpleEntitiesRepositary.Save(entity);
             dbContext.SimpleEntities.Should().HaveCount(1);
             dbContext.SimpleEntities.Should().Contain(x => x.Id == entity.Id);
 
             entity.Name = "На на на";
-            this.SimpleEntitiesRepositary.Save(entity);
+            SimpleEntitiesRepositary.Save(entity);
 
             dbContext.SimpleEntities.Should().HaveCount(1);
             var savedEntity = dbContext.SimpleEntities.Single(x => x.Id == entity.Id);
@@ -263,10 +283,10 @@ namespace AV.Web.Tests.Database
         {
             var dbContext = ServiceLocator.Current.GetInstance<DbContext>() as SampleDb;
             var entity = new SimpleDbEntity { Name = "Awesome string" };
-            this.SimpleEntitiesRepositary.Save(entity);
+            SimpleEntitiesRepositary.Save(entity);
             var entityToUpdate = new SimpleDbEntity { Id = entity.Id, Name = "Something else" };
 
-            this.SimpleEntitiesRepositary.Update(entityToUpdate);
+            SimpleEntitiesRepositary.Update(entityToUpdate);
 
             entityToUpdate.Name.Should().Be("Awesome string");
         }
@@ -285,9 +305,9 @@ namespace AV.Web.Tests.Database
 
         public AggregationDbEntity()
         {
-            this.ManyToOne = new List<AggregationDbEntity>();
-            this.ManyToManyFrom = new List<AggregationDbEntity>();
-            this.ManyToManyTo = new List<AggregationDbEntity>();
+            ManyToOne = new List<AggregationDbEntity>();
+            ManyToManyFrom = new List<AggregationDbEntity>();
+            ManyToManyTo = new List<AggregationDbEntity>();
         }
 
         #endregion
@@ -350,7 +370,7 @@ namespace AV.Web.Tests.Database
     {
         public SimpleEntityConfiguration()
         {
-            this.HasKey(x => x.Id);
+            HasKey(x => x.Id);
             Property(x => x.Name).IsRequired();
         }
     }
@@ -359,12 +379,12 @@ namespace AV.Web.Tests.Database
     {
         public AggregationEntityConfiguration()
         {
-            this.HasKey(x => x.Id);
+            HasKey(x => x.Id);
             Property(x => x.Name);
 
-            this.HasOptional(x => x.OneToOne).WithOptionalDependent().WillCascadeOnDelete();
-            this.HasOptional(x => x.OneToMany).WithMany(x => x.ManyToOne).WillCascadeOnDelete();
-            this.HasMany(x => x.ManyToManyFrom).WithMany(x => x.ManyToManyTo);
+            HasOptional(x => x.OneToOne).WithOptionalPrincipal().WillCascadeOnDelete();
+            HasOptional(x => x.OneToMany).WithMany(x => x.ManyToOne);
+            HasMany(x => x.ManyToManyFrom).WithMany(x => x.ManyToManyTo);
         }
     }
 
