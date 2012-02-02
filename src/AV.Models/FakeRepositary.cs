@@ -20,7 +20,7 @@ namespace AV.Models
     /// </summary>
     /// <typeparam name="TEntity"> The type of the entity. </typeparam>
     public class FakeRepositary<TEntity> : IRepositary<TEntity>
-        where TEntity : class, IEntity
+        where TEntity : class, IEntity, new()
     {
         /// <summary>
         ///   Finalizer for current class

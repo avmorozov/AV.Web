@@ -11,6 +11,7 @@ namespace AV.Database
     using System.Collections.Generic;
     using System.Data;
     using System.Data.Entity;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
 
@@ -19,7 +20,7 @@ namespace AV.Database
     /// <summary>
     /// </summary>
     public class EntityRepositary<TEntity> : IRepositary<TEntity>
-        where TEntity : class, IEntity
+        where TEntity : class, IEntity, new()
     {
         /// <summary>
         ///   Database context
@@ -29,7 +30,7 @@ namespace AV.Database
         /// <summary>
         ///   Database set of entities
         /// </summary>
-        private readonly DbSet<TEntity> _entitySet;
+        private readonly dynamic _entitySet;
 
         /// <summary>
         ///   Query context
@@ -44,7 +45,7 @@ namespace AV.Database
         {
             this._dbContext = dbContext;
             var dbSetProperty = GetDbSetProperty(dbContext);
-            this._entitySet = dbSetProperty.GetValue(dbContext, null) as DbSet<TEntity>;
+            this._entitySet = dbSetProperty.GetValue(dbContext, null);
             this._queryContext = Queryable.OfType<TEntity>(this._entitySet);
         }
 
@@ -68,9 +69,11 @@ namespace AV.Database
                     return dbSetProperty;
                 }
             }
-            throw new ApplicationException(
+            throw new EntityRepositaryException(
                 String.Format(
-                    "There is no property with type {0} in database context", typeof(IDbSet<TEntity>).FullName));
+                    CultureInfo.InvariantCulture,
+                    "There is no property with type {0} in database context",
+                    typeof(IDbSet<TEntity>).FullName));
         }
 
         /// <summary>
@@ -130,16 +133,41 @@ namespace AV.Database
             }
         }
 
+        /// <summary>
+        /// Dispose pattern 
+        /// </summary>
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Dispose pattern 
+        /// </summary>
+        /// <param name="disposing">if object should be disposed</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if(disposing)
+            {
+                _dbContext.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Create new instance of entity
+        /// </summary>
+        /// <returns>Entity instance</returns>
         public TEntity Create()
         {
-            throw new NotImplementedException();
+            TEntity entity = _entitySet.Create<TEntity>();
+            return entity;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
         public void Update(TEntity obj)
         {
             _dbContext.Entry(obj).Reload();

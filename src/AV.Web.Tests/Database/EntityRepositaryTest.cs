@@ -289,6 +289,18 @@ namespace AV.Web.Tests.Database
             entity.Name.Should().Be("Awesome string");
         }
 
+        /// <summary>
+        /// Check that entity with lazy loading is created
+        /// </summary>
+        [TestMethod]
+        public void CreateEntity()
+        {
+            var entity = AggregationEntitiesRepositary.Create();
+            entity.ManyToManyFrom.Should().NotBeNull();
+            entity.ManyToManyTo.Should().NotBeNull();
+            entity.ManyToOne.Should().NotBeNull();
+        }
+
         #endregion
     }
 

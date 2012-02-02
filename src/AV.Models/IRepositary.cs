@@ -14,7 +14,7 @@ namespace AV.Models
     /// </summary>
     /// <typeparam name="TEntity"> Entity to store </typeparam>
     public interface IRepositary<TEntity> : IQueryable<TEntity>, IDisposable
-        where TEntity : class, IEntity
+        where TEntity : class, IEntity, new()
     {
         #region Public Methods
 
