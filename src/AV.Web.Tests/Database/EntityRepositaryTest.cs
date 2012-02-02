@@ -282,13 +282,11 @@ namespace AV.Web.Tests.Database
         public void ReloadEntity()
         {
             var dbContext = ServiceLocator.Current.GetInstance<DbContext>() as SampleDb;
-            var entity = new SimpleDbEntity { Name = "Awesome string" };
-            SimpleEntitiesRepositary.Save(entity);
-            var entityToUpdate = new SimpleDbEntity { Id = entity.Id, Name = "Something else" };
-
-            SimpleEntitiesRepositary.Update(entityToUpdate);
-
-            entityToUpdate.Name.Should().Be("Awesome string");
+            var entity = new SimpleDbEntity { Name =  "Awefull string"};
+            SimpleEntitiesRepositary.Save(entity);            
+            dbContext.Database.ExecuteSqlCommand("UPDATE SimpleDbEntities SET Name = {0} WHERE ID={1}", "Awesome string", entity.Id);
+            SimpleEntitiesRepositary.Update(entity);
+            entity.Name.Should().Be("Awesome string");
         }
 
         #endregion

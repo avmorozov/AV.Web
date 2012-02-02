@@ -9,6 +9,7 @@ namespace AV.Database
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Data;
     using System.Data.Entity;
     using System.Linq;
     using System.Reflection;
@@ -28,7 +29,7 @@ namespace AV.Database
         /// <summary>
         ///   Database set of entities
         /// </summary>
-        private readonly dynamic _entitySet;
+        private readonly DbSet<TEntity> _entitySet;
 
         /// <summary>
         ///   Query context
@@ -43,7 +44,7 @@ namespace AV.Database
         {
             this._dbContext = dbContext;
             var dbSetProperty = GetDbSetProperty(dbContext);
-            this._entitySet = dbSetProperty.GetValue(dbContext, null);
+            this._entitySet = dbSetProperty.GetValue(dbContext, null) as DbSet<TEntity>;
             this._queryContext = Queryable.OfType<TEntity>(this._entitySet);
         }
 
@@ -141,7 +142,7 @@ namespace AV.Database
 
         public void Update(TEntity obj)
         {
-            throw new NotImplementedException();
+            _dbContext.Entry(obj).Reload();
         }
 
         /// <summary>
@@ -150,7 +151,7 @@ namespace AV.Database
         /// <param name="obj"></param>
         public void Remove(TEntity obj)
         {
-            if (_dbContext.Entry(obj).State == System.Data.EntityState.Detached) 
+            if (_dbContext.Entry(obj).State != EntityState.Detached)
                 _entitySet.Remove(obj);
             _dbContext.SaveChanges();
         }
@@ -160,7 +161,7 @@ namespace AV.Database
         /// </summary>
         /// <param name="obj">The object to save.</param>
         public void Save(TEntity obj)
-        {            
+        {
             if (_dbContext.Entry(obj).State == System.Data.EntityState.Detached)
                 _entitySet.Add(obj);
             _dbContext.SaveChanges();
